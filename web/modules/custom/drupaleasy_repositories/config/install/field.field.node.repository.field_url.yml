@@ -1,0 +1,23 @@
+uuid: 15a67de0-b3b3-446e-96df-89053c903e55
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_url
+    - node.type.repository
+  module:
+    - link
+id: node.repository.field_url
+field_name: field_url
+entity_type: node
+bundle: repository
+label: URL
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  title: 0
+  link_type: 16
+field_type: link
