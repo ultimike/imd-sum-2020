@@ -1,0 +1,5 @@
+drupaleasy repositories configure:
+  title: 'Administer DrupalEasy repositories settings'
+  description: 'Allows access to the DrupalEasy repositories settings.'
+  restrict access: false
+
