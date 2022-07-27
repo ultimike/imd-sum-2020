@@ -14,7 +14,7 @@ trait RepositoryContentTypeTrait {
   /**
    * Creates a repository content type with fields.
    */
-  protected function createRepositoryContentType() {
+  protected function createRepositoryContentType(): void {
     NodeType::create(['type' => 'repository', 'name' => 'Repository'])->save();
 
     // Create Description field.

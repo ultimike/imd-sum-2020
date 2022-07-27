@@ -69,7 +69,7 @@ class AddYmlRepoTest extends BrowserTestBase {
   /**
    * Test callback.
    */
-//  public function testSomething():void {
+//  public function testSomething(): void {
 //    $another_user = $this->drupalCreateUser(['access administration pages']);
 //    $this->drupalLogin($another_user);
 //    $this->drupalGet('admin');
