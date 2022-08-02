@@ -32,8 +32,8 @@ class SettingsForm extends ConfigFormBase {
     $form['repositories'] = [
       '#type' => 'checkboxes',
       '#options' => [
-        'yml_remote' => 'Yml remote',
-        'github' => 'Github',
+        'yml_remote' => $this->t('Yml remote'),
+        'github' => $this->t('Github'),
       ],
       '#title' => $this->t('Repositories'),
       '#default_value' => $repositories_config->get('repositories') ?: [],

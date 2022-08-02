@@ -156,17 +156,17 @@ class AddYmlRepoTest extends BrowserTestBase {
 
     /** @var \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager */
     $entity_type_manager = \Drupal::entityTypeManager();
-    /** @var \Drupal\Core\Entity\EntityStorageInterface $storage */
+    /** @var \Drupal\Core\Entity\EntityStorageInterface $node_storage */
     $node_storage = $entity_type_manager->getStorage('node');
     /** @var \Drupal\node\Entity\Node $node */
     $node = $node_storage->load(reset($results));
 
     // Check values.
-    $session->assert($node->field_machine_name->value == 'batman-repo', 'Machine name did not match.');
-    $session->assert($node->field_source->value == 'yml_remote', 'Source did not match.');
-    $session->assert($node->title->value == 'The Batman repository', 'Label did not match.');
-    $session->assert($node->field_description->value == 'This is where Batman keeps all his crime-fighting code.', 'Description did not match.');
-    $session->assert($node->field_number_of_issues->value == '6', 'Number of issues did not match.');
+    $session->assert($node->field_machine_name->value == 'batman-repo', 'Machine name matched.');
+    $session->assert($node->field_source->value == 'yml_remote', 'Source matched.');
+    $session->assert($node->title->value == 'The Batman repository', 'Label matched.');
+    $session->assert($node->field_description->value == 'This is where Batman keeps all his crime-fighting code.', 'Description matched.');
+    $session->assert($node->field_number_of_issues->value == '6', 'Number of issues matched.');
 
   }
 
