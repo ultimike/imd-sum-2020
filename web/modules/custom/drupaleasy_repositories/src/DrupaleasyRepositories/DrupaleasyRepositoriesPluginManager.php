@@ -5,6 +5,7 @@ namespace Drupal\drupaleasy_repositories\DrupaleasyRepositories;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Plugin\DefaultPluginManager;
+use Drupal\webprofiler\Cache\CacheBackendWrapper;
 
 /**
  * DrupaleasyRepositories plugin manager.
