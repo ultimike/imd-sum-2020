@@ -20,7 +20,7 @@ class YmlRemote extends DrupaleasyRepositoriesPluginBase {
    * {@inheritdoc}
    */
   public function validate(string $uri): bool {
-    $pattern = '/^(https?:\/\/)[a-zA-Z0-9_\-\/\.\%]+\.yml/';
+    $pattern = '|^(https?://)[a-zA-Z0-9.]+/[a-zA-Z0-9_\-.%/]+\.ya?ml$|';
 
     if (preg_match($pattern, $uri) === 1) {
       return TRUE;
@@ -41,9 +41,9 @@ class YmlRemote extends DrupaleasyRepositoriesPluginBase {
   public function getRepo(string $uri): array {
     if ($file_content = file_get_contents($uri)) {
       $repo_info = Yaml::decode($file_content);
-      $full_name = array_key_first($repo_info);
+      $machine_name = array_key_first($repo_info);
       $repo = reset($repo_info);
-      return $this->mapToCommonFormat($full_name, $repo['label'], $repo['description'], $repo['num_open_issues'], $uri);
+      return $this->mapToCommonFormat($machine_name, $repo['label'], $repo['description'], $repo['num_open_issues'], $uri);
     }
     return [];
   }

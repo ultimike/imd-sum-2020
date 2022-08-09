@@ -56,7 +56,7 @@ class YmlRemoteTest extends UnitTestCase {
       ],
       [
         'https://www.mysite.com/anything.yaml',
-        FALSE,
+        TRUE,
       ],
       [
         '/var/www/html/anything.yaml',
@@ -64,6 +64,10 @@ class YmlRemoteTest extends UnitTestCase {
       ],
       [
         'https://www.mysite.com/some%20directory/anything.yml',
+        TRUE,
+      ],
+      [
+        'https://www.mysite.com/some%20directory/anything.yaml',
         TRUE,
       ],
     ];
