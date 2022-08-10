@@ -37,7 +37,7 @@ class DrupaleasyRepositoriesManagerTest extends KernelTestBase {
    *
    * @test
    */
-  public function testYmlRemoteInstance() {
+  public function testYmlRemoteInstance(): void {
     $example_instance = $this->manager->createInstance('yml_remote');
     $plugin_def = $example_instance->getPluginDefinition();
     $this->assertInstanceOf('Drupal\drupaleasy_repositories\Plugin\DrupaleasyRepositories\YmlRemote', $example_instance);

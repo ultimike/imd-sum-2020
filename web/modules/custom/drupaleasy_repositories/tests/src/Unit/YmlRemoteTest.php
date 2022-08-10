@@ -39,6 +39,10 @@ class YmlRemoteTest extends UnitTestCase {
 
   /**
    * Data provider for testValidate().
+   *
+   * phpcs:ignore
+   * @return array<int, array<int, bool|string>>
+   *   Array of test strings and results.
    */
   public function validateProvider(): array {
     return [
@@ -70,6 +74,14 @@ class YmlRemoteTest extends UnitTestCase {
         'https://www.mysite.com/some%20directory/anything.yaml',
         TRUE,
       ],
+      [
+        'https://wwwmysitecom/some%20directory/anything.yaml',
+        FALSE,
+      ],
+      [
+        'https://dev.www.mysite.com/anything.yml',
+        TRUE,
+      ],
     ];
   }
 
@@ -81,7 +93,7 @@ class YmlRemoteTest extends UnitTestCase {
    * @covers ::validate
    * @test
    */
-  public function testValidate($testString, $expected): void {
+  public function testValidate(string $testString, bool $expected): void {
     self::assertEquals($expected, $this->ymlRemote->validate($testString));
   }
 
