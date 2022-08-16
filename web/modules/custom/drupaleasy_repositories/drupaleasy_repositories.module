@@ -1,6 +1,37 @@
 <?php
 
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Element;
+
 /**
  * @file
  * Primary module hooks for DrupalEasy Repositories module.
  */
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function drupaleasy_repositories_form_user_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
+  if (!empty($form['field_repository_url']['widget'])) {
+    foreach (Element::children($form['field_repository_url']['widget']) as $el_index) {
+      $form['field_repository_url']['widget'][$el_index]['#process'][] = '_drupaleasy_repositories_url_help_text';
+    }
+  }
+}
+
+/**
+ * Custom function to populate Repository URL descriptions.
+ */
+function _drupaleasy_repositories_url_help_text(array &$element, FormStateInterface &$form_state, array &$form): array {
+  /** @var \Drupal\drupaleasy_repositories\DrupaleasyRepositoriesService $repository_service */
+  $repository_service = \Drupal::service('drupaleasy_repositories.service');
+  $help_text = $repository_service->getValidatorHelpText();
+  if ($help_text) {
+    $element['uri']['#description'] = t('Valid URLs include: %help_text', ['%help_text' => $help_text]);
+  }
+  else {
+    $element['uri']['#description'] = t('No repository plugins are enabled. Contact site administrator.');
+  }
+  $element['uri']['#description_display'] = 'before';
+  return $element;
+}
