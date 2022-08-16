@@ -103,7 +103,7 @@ class AddYmlRepoTest extends BrowserTestBase {
     $session->responseNotContains('The value is not correct.');
     $session->responseContains('The configuration options have been saved.');
     $session->checkboxChecked('edit-repositories-yml-remote');
-    $session->checkboxNotChecked('edit-repositories-github');
+    // $session->checkboxNotChecked('edit-repositories-github');
 
   }
 
@@ -152,7 +152,7 @@ class AddYmlRepoTest extends BrowserTestBase {
     $query = \Drupal::entityQuery('node');
     $query->condition('type', 'repository')->accessCheck(FALSE);
     $results = $query->execute();
-    $session->assert(count($results) === 1, 'One repository node was found.');
+    $session->assert(count($results) === 1, 'Either none or more than one repository node was found.');
 
     /** @var \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager */
     $entity_type_manager = \Drupal::entityTypeManager();
