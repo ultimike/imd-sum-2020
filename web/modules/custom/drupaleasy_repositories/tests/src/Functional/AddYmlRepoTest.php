@@ -166,7 +166,7 @@ class AddYmlRepoTest extends BrowserTestBase {
     $session->assert($node->field_source->value == 'yml_remote', 'Source matched.');
     $session->assert($node->title->value == 'The Batman repository', 'Label matched.');
     $session->assert($node->field_description->value == 'This is where Batman keeps all his crime-fighting code.', 'Description matched.');
-    $session->assert($node->field_number_of_issues->value == '6', 'Number of issues matched.');
+    $session->assert($node->field_num_open_issues->value == '6', 'Number of issues matched.');
 
   }
 
