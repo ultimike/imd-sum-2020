@@ -54,11 +54,14 @@ class DrupaleasyRepositoriesService {
    *   The config.factory service.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity_type.manager service.
+   * @param bool $dry_run
+   *   The dry_run parameter that specifies whether or not to save node changes.
    */
-  public function __construct(DrupaleasyRepositoriesPluginManager $plugin_manager_drupaleasy_repositories, ConfigFactoryInterface $config_factory, EntityTypeManagerInterface $entity_type_manager) {
+  public function __construct(DrupaleasyRepositoriesPluginManager $plugin_manager_drupaleasy_repositories, ConfigFactoryInterface $config_factory, EntityTypeManagerInterface $entity_type_manager, bool $dry_run) {
     $this->pluginManagerDrupaleasyRepositories = $plugin_manager_drupaleasy_repositories;
     $this->configFactory = $config_factory;
     $this->entityManager = $entity_type_manager;
+    $this->dryRun = $dry_run;
   }
 
   /**
@@ -106,7 +109,7 @@ class DrupaleasyRepositoriesService {
    * @return string
    *   Errors reported by plugins.
    */
-  public function validateRepositoryUrls(array $urls, int $uid):string {
+  public function validateRepositoryUrls(array $urls, int $uid): string {
     $errors = [];
     $repository_services = [];
 
@@ -133,6 +136,15 @@ class DrupaleasyRepositoriesService {
           foreach ($repository_services as $repository_service) {
             if ($repository_service->validate($uri)) {
               $validated = TRUE;
+              $repo_metadata = $repository_service->getRepo($uri);
+              if ($repo_metadata) {
+                if (!$this->isUnique($repo_metadata, $uid)) {
+                  $errors[] = $this->t('The repository at %uri has been added by another user.', ['%uri' => $uri]);
+                }
+              }
+              else {
+                $errors[] = $this->t('The repository at the url %uri was not found.', ['%uri' => $uri]);
+              }
             }
           }
           if (!$validated) {
@@ -298,6 +310,37 @@ class DrupaleasyRepositoriesService {
         }
       }
     }
+    return TRUE;
+  }
+
+  /**
+   * Check to see if the repository is unique.
+   *
+   * @param array $repo_info
+   *   The repository info.
+   * @param int $uid
+   *   The user ID of the submitter.
+   *
+   * @return bool
+   *   Return true if the repository is unique.
+   */
+  protected function isUnique(array $repo_info, int $uid): bool {
+    $node_storage = $this->entityManager->getStorage('node');
+
+    // Calculate hash value.
+    $hash = md5(serialize(array_pop($repo_info)));
+
+    // Look for repository nodes with a matching hash.
+    $query = $node_storage->getQuery();
+    $query->condition('type', 'repository')
+      ->condition('field_hash', $hash)
+      ->condition('uid', $uid, '<>')
+      ->accessCheck(FALSE);
+    $results = $query->execute();
+
+    if (count($results)) {
+      return FALSE;
+    };
     return TRUE;
   }
 

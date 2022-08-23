@@ -102,4 +102,22 @@ trait RepositoryContentTypeTrait {
     ])->save();
   }
 
+  /**
+   * Returns sample repository info.
+   *
+   * @return array
+   *   The sample repository info.
+   */
+  protected function getAquamanRepo() {
+    // The order of elements of this array matters when calculating the hash.
+    $repo['aquaman-repository'] = [
+      'label' => 'The Aquaman repository',
+      'description' => 'This is where Aquaman keeps all his crime-fighting code.',
+      'num_open_issues' => 6,
+      'source' => 'yml',
+      'url' => 'http://example.com/aquaman-repo.yml',
+    ];
+    return $repo;
+  }
+
 }
