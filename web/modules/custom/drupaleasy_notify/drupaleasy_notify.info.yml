@@ -1,0 +1,7 @@
+name: DrupalEasy Notify
+type: module
+description: Provide feedback to users when Repository nodes are created, updated, or deleted.
+package: DrupalEasy
+core_version_requirement: ^9 || ^10
+dependencies:
+  - drupaleasy_repositories

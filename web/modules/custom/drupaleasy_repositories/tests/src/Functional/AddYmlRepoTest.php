@@ -170,4 +170,57 @@ class AddYmlRepoTest extends BrowserTestBase {
 
   }
 
+  /**
+   * Test that a yml repo can be added and then removed to a profile by a user.
+   *
+   * This tests that a yml-based repo can be added then deleted to a user's
+   * profile and that no repository node remains afterwards. As this test
+   * as similarities to testAddYmlRepo, we can skip some of the assertions that
+   * were tested there.
+   *
+   * @test
+   */
+  public function testRemoveYmlRepo(): void {
+    // Create and login as a Drupal user with permission to access
+    // the DrupalEasy Repositories Settings page.
+    $user = $this->drupalCreateUser(['access content']);
+    $this->drupalLogin($user);
+
+    // Start the browsing session.
+    $session = $this->assertSession();
+
+    // Navigate to their edit profile page and confirm we can reach it.
+    $this->drupalGet('/user/' . $user->id() . '/edit');
+
+    // Get the full path to the test .yml file.
+    /** @var \Drupal\Core\Extension\ModuleHandler $module_handler */
+    $module_handler = \Drupal::service('module_handler');
+    /** @var \Drupal\Core\Extension\Extension $module */
+    $module = $module_handler->getModule('drupaleasy_repositories');
+    $module_full_path = \Drupal::request()->getUri() . $module->getPath();
+
+    // Add the test .yml file path and submit the form.
+    $edit = [
+      'field_repository_url[0][uri]' => $module_full_path . '/tests/assets/batman-repo.yml',
+    ];
+    $this->submitForm($edit, 'Save');
+
+    // Remove the test .yml file path and submit the form.
+    $edit = [
+      'field_repository_url[0][uri]' => '',
+    ];
+    $this->submitForm($edit, 'Save');
+
+    // We can't check for the following message unless we also have the future
+    // drupaleasy_notify module enabled.
+    // $session->responseContains('The repo named The Batman repository has been deleted (/node/1). The repo node is owned by admin (1).');
+
+    // Check to ensure there are zero repository nodes.
+    /** @var \Drupal\Core\Entity\Query\QueryInterface $query */
+    $query = \Drupal::entityQuery('node');
+    $query->condition('type', 'repository')->accessCheck(FALSE);
+    $results = $query->execute();
+    $session->assert(count($results) == 0, 'The repository node was not deleted.');
+  }
+
 }

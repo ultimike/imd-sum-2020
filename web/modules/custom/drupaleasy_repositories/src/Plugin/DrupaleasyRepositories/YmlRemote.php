@@ -39,7 +39,7 @@ class YmlRemote extends DrupaleasyRepositoriesPluginBase {
    * {@inheritdoc}
    */
   public function getRepo(string $uri): array {
-    if (file_exists($uri)) {
+    if (file($uri)) {
       if ($file_content = file_get_contents($uri)) {
         $repo_info = Yaml::decode($file_content);
         $machine_name = array_key_first($repo_info);
