@@ -8,7 +8,7 @@ use Drupal\drupaleasy_repositories\DrupaleasyRepositories\DrupaleasyRepositories
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\node\NodeInterface;
+use Drupal\node\Entity\Node;
 use Drupal\drupaleasy_repositories\Event\RepoUpdatedEvent;
 
 /**
@@ -245,8 +245,9 @@ class DrupaleasyRepositoriesService {
       $results = $query->execute();
 
       if ($results) {
-        // If we get here, a repository node exists for this repository machine name.
-        /** @var \Drupal\node\NodeInterface $node */
+        // If we get here, a repository node exists for this repository machine
+        // name.
+        /** @var \Drupal\node\Entity\Node $node */
         $node = $node_storage->load(reset($results));
 
         if ($hash != $node->get('field_hash')->value) {
@@ -266,7 +267,7 @@ class DrupaleasyRepositoriesService {
       }
       else {
         // Repository node doesn't exist - create a new one.
-        /** @var \Drupal\node\NodeInterface $node */
+        /** @var \Drupal\node\Entity\Node $node */
         $node = $node_storage->create([
           'uid' => $account->id(),
           'type' => 'repository',
@@ -315,7 +316,7 @@ class DrupaleasyRepositoriesService {
     $results = $query->execute();
     if ($results) {
       $nodes = $node_storage->loadMultiple($results);
-      /** @var \Drupal\node\NodeInterface $node */
+      /** @var \Drupal\node\Entity\Node $node */
       foreach ($nodes as $node) {
         if (!$this->dryRun) {
           $node->delete();
@@ -340,16 +341,15 @@ class DrupaleasyRepositoriesService {
   protected function isUnique(array $repo_info, int $uid): bool {
     $node_storage = $this->entityManager->getStorage('node');
 
-    // Calculate hash value.
-    $hash = md5(serialize(array_pop($repo_info)));
+    $repo_metadata = array_pop($repo_info);
 
     // Look for repository nodes with a matching hash.
     $query = $node_storage->getQuery();
-    $query->condition('type', 'repository')
-      ->condition('field_hash', $hash)
+    $results = $query->condition('type', 'repository')
+      ->condition('field_url', $repo_metadata['url'])
       ->condition('uid', $uid, '<>')
-      ->accessCheck(FALSE);
-    $results = $query->execute();
+      ->accessCheck(FALSE)
+      ->execute();
 
     if (count($results)) {
       return FALSE;
@@ -360,12 +360,12 @@ class DrupaleasyRepositoriesService {
   /**
    * Perform tasks when a repository is created or updated.
    *
-   * @param \Drupal\node\NodeInterface $node
+   * @param \Drupal\node\Entity\Node $node
    *   The node that was updated.
    * @param string $action
    *   The action that was performed on the node: updated, created, or deleted.
    */
-  protected function repoUpdated(NodeInterface $node, string $action) {
+  protected function repoUpdated(Node $node, string $action) {
     $event = new RepoUpdatedEvent($node, $action);
     $this->eventDispatcher->dispatch($event, RepoUpdatedEvent::EVENT_NAME);
   }

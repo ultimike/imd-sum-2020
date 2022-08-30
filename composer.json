@@ -12,6 +12,10 @@
         {
             "type": "composer",
             "url": "https://packages.drupal.org/8"
+        },
+        {
+            "type": "path",
+            "url": "./modules/*"
         }
     ],
     "require": {
@@ -24,6 +28,8 @@
         "drupal/devel": "^4.1",
         "drupal/gin": "^3.0@beta",
         "drupal/gin_toolbar": "^1.0@beta",
+        "drupaleasy/drupaleasy_notify": "^1.0",
+        "drupaleasy/drupaleasy_repositories": "^1.0",
         "phpspec/prophecy-phpunit": "^2"
     },
     "conflict": {

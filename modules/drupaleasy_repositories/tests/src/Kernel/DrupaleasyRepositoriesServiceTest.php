@@ -48,7 +48,6 @@ class DrupaleasyRepositoriesServiceTest extends KernelTestBase {
    */
   protected ModuleHandler $moduleHandler;
 
-
   /**
    * An admin user.
    *
@@ -93,7 +92,6 @@ class DrupaleasyRepositoriesServiceTest extends KernelTestBase {
     $config = $this->config('drupaleasy_repositories.settings');
     $config->set('repositories', ['yml_remote' => 'yml_remote']);
     $config->save();
-
   }
 
   /**
@@ -158,11 +156,23 @@ class DrupaleasyRepositoriesServiceTest extends KernelTestBase {
    * @test
    */
   public function testValidateRepositoryUrls(string $expected, array $urls): void {
+    // Get the full path to the test .yml file.
+    /** @var \Drupal\Core\Extension\Extension $module */
+    $module = $this->moduleHandler->getModule('drupaleasy_repositories');
+    $module_full_path = \Drupal::request()->getUri() . $module->getPath();
+
+    foreach ($urls as $key => $url) {
+      if (isset($url['uri'])) {
+        $urls[$key]['uri'] = $module_full_path . $url['uri'];
+      }
+    }
+
     $actual = $this->drupaleasyRepositoriesService->validateRepositoryUrls($urls, 999);
-    // Only check assertion if no error is expected nor returned as mb_stristr()
-    // doesn't work when the 'needle' ($expected) is an empty string.
-    if (($expected != '') || ($actual != $expected)) {
-      $this->assertTrue((bool) mb_stristr($actual, $expected), "The URLs' validation does not match the expected value.");
+    if ($expected) {
+      $this->assertTrue((bool) mb_stristr($actual, $expected), "The URLs' validation does not match the expected value. Actual: {$actual}, Expected: {$expected}");
+    }
+    else {
+      $this->assertEquals($expected, $actual, "The URLs' validation does not match the expected value. Actual: {$actual}, Expected: {$expected}");
     }
   }
 
