@@ -47,6 +47,11 @@
         },
         "sort-packages": true
     },
+    "scripts": {
+        "post-drupal-scaffold-cmd": [
+            "patch -p1 < patches/no-yml-htaccess.patch"
+        ]
+    },
     "extra": {
         "drupal-scaffold": {
             "locations": {

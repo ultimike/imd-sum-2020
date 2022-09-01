@@ -51,3 +51,4 @@ web/modules/contrib
 # Ignore SimpleTest multi-site environment.
 # simpletest
 keys/*
+web/.htaccess
