@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "require": {
     "knplabs/github-api": "^3.0",
-    "symfony/http-client": "^5.0"
+    "symfony/http-client": "^5.0",
+    "drupal/key": "^1.0"
   }
 }

@@ -15,7 +15,10 @@ class DrupaleasyRepositoriesManagerTest extends KernelTestBase {
   /**
    * {@inheritdoc}
    */
-  protected static $modules = ['drupaleasy_repositories'];
+  protected static $modules = [
+    'drupaleasy_repositories',
+    'key',
+  ];
 
   /**
    * The plugin manager.
@@ -44,6 +47,20 @@ class DrupaleasyRepositoriesManagerTest extends KernelTestBase {
     $this->assertInstanceOf('Drupal\drupaleasy_repositories\DrupaleasyRepositories\DrupaleasyRepositoriesPluginBase', $example_instance);
     $this->assertArrayHasKey('label', $plugin_def);
     $this->assertTrue($plugin_def['label'] == 'Remote .yml file');
+  }
+
+  /**
+   * Test creating an instance of the Github plugin.
+   *
+   * @test
+   */
+  public function testGithubInstance(): void {
+    $example_instance = $this->manager->createInstance('github');
+    $plugin_def = $example_instance->getPluginDefinition();
+    $this->assertInstanceOf('Drupal\drupaleasy_repositories\Plugin\DrupaleasyRepositories\Github', $example_instance);
+    $this->assertInstanceOf('Drupal\drupaleasy_repositories\DrupaleasyRepositories\DrupaleasyRepositoriesPluginBase', $example_instance);
+    $this->assertArrayHasKey('label', $plugin_def);
+    $this->assertTrue($plugin_def['label'] == 'Github');
   }
 
 }

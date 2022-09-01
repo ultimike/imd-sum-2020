@@ -9,3 +9,4 @@ dependencies:
   - drupal:text
   - drupal:path
   - drupal:menu_ui
+  - key:key
