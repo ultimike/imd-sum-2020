@@ -81,7 +81,7 @@ abstract class DrupaleasyRepositoriesPluginBase extends PluginBase implements Dr
    *   The full name of the repository.
    * @param string $label
    *   The short name of the repository.
-   * @param string $description
+   * @param string|null $description
    *   The description of the repository.
    * @param int $num_open_issues
    *   The number of open issues.
@@ -91,7 +91,7 @@ abstract class DrupaleasyRepositoriesPluginBase extends PluginBase implements Dr
    * @return array
    *   An array containing info about a single repository.
    */
-  protected function mapToCommonFormat(string $machine_name, string $label, string $description, int $num_open_issues, string $url): array {
+  protected function mapToCommonFormat(string $machine_name, string $label, string|null $description, int $num_open_issues, string $url): array {
     $repo_info[$machine_name] = [
       'label' => $label,
       'description' => $description,

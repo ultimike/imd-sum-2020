@@ -45,47 +45,44 @@ class Github extends DrupaleasyRepositoriesPluginBase {
     $all_parts = parse_url($uri);
     $parts = explode('/', $all_parts['path']);
 
-    // Authenticate with the Github API.
-    if ($this->authenticate()) {
-      // Get the repo metadata from the API.
-      try {
-        $repo = $this->client->api('repo')->show($parts[1], $parts[2]);
-      }
-      catch (\Throwable $th) {
-        $this->messenger->addMessage($this->t('GitHub error: @error', [
-          '@error' => $th->getMessage(),
-        ]));
-        return [];
-      }
+    // Set up authentication with the Github API.
+    $this->setAuthentication();
 
-      // Map it to a common format.
-      return $this->mapToCommonFormat($repo['full_name'], $repo['name'], $repo['description'], $repo['open_issues_count'], $repo['html_url']);
-    }
-    else {
-      // If authentication failed, return nothing.
-      return [];
-    }
-  }
-
-  /**
-   * Authenticate with Github.
-   */
-  protected function authenticate(): bool {
-    $this->client = Client::createWithHttpClient(new HttplugClient());
-    $github_key = $this->keyRepository->getKey('github')->getKeyValues();
+    // Get the repo metadata from the API.
     try {
-      // The authenticate() method does not return TRUE/FALSE, only an error if
-      // unsuccessful.
-      $this->client->authenticate($github_key['username'], $github_key['personal_access_token'], AuthMethod::CLIENT_ID);
+      $repo = $this->client->api('repo')->show($parts[1], $parts[2]);
     }
     catch (\Throwable $th) {
       $this->messenger->addMessage($this->t('GitHub error: @error', [
         '@error' => $th->getMessage(),
       ]));
-      return FALSE;
+      return [];
     }
 
-    return TRUE;
+    // Map it to a common format.
+    return $this->mapToCommonFormat($repo['full_name'], $repo['name'], $repo['description'], $repo['open_issues_count'], $repo['html_url']);
+  }
+
+  /**
+   * Authenticate with Github.
+   */
+  protected function setAuthentication(): void {
+    $this->client = Client::createWithHttpClient(new HttplugClient());
+    $github_key = $this->keyRepository->getKey('github')->getKeyValues();
+    // The authenticate() method does not actually call the Github API,
+    // rather it only stores the authentication info in $client for use when
+    // $client makes an API call that requires authentication.
+    $this->client->authenticate($github_key['username'], $github_key['personal_access_token'], AuthMethod::CLIENT_ID);
+
+    // Test the credentials by uncommenting the following code block.
+    // try {
+    //   $this->client->currentUser()->emails()->allPublic();
+    // }
+    // catch (\Throwable $th) {
+    //   $this->messenger->addMessage($this->t('GitHub error: @error', [
+    //     '@error' => $th->getMessage(),
+    //   ]));
+    // }
   }
 
 }
