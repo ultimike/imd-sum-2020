@@ -7,6 +7,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\drupaleasy_repositories\DrupaleasyRepositoriesService;
 use Drupal\drupaleasy_repositories\Batch;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Provides a DrupalEasy Repositories form.
@@ -14,31 +15,68 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 class UpdateRepositoriesForm extends FormBase {
 
   /**
+   * The DrupalEasy repositories service.
+   *
+   * @var \Drupal\drupaleasy_repositories\DrupaleasyRepositoriesService
+   */
+  protected DrupaleasyRepositoriesService $repositoriesService;
+
+  /**
+   * The DrupalEasy repositories batch service.
+   *
+   * @var \Drupal\drupaleasy_repositories\Batch
+   */
+  protected Batch $batch;
+
+  /**
+   * The Entity type manager service.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected EntityTypeManagerInterface $entityTypeManager;
+
+  /**
    * {@inheritdoc}
    */
-  public function getFormId() {
+  public static function create(ContainerInterface $container): UpdateRepositoriesForm {
+    return new static(
+      $container->get('drupaleasy_repositories.service'),
+      $container->get('drupaleasy_repositories.batch'),
+      $container->get('entity_type.manager'),
+    );
+  }
+
+  /**
+   * Class constructor.
+   */
+  public function __construct(DrupaleasyRepositoriesService $drupaleasy_repositories_service, Batch $batch, EntityTypeManagerInterface $entity_type_manager) {
+    $this->repositoriesService = $drupaleasy_repositories_service;
+    $this->batch = $batch;
+    $this->entityTypeManager = $entity_type_manager;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getFormId(): string {
     return 'drupaleasy_repositories_update_repositories';
   }
 
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state) {
-
-    $form['message'] = [
-      '#type' => 'textarea',
-      '#title' => $this->t('Message'),
-      '#required' => TRUE,
+  public function buildForm(array $form, FormStateInterface $form_state): array {
+    $form['uid'] = [
+      '#type' => 'entity_autocomplete',
+      '#target_type' => 'user',
+      '#title' => $this->t('Username'),
+      '#description' => $this->t('Leave blank to update all repository nodes for all users.'),
+      '#required' => FALSE,
     ];
-
-    $form['actions'] = [
-      '#type' => 'actions',
-    ];
-    $form['actions']['submit'] = [
+    $form['submit'] = [
       '#type' => 'submit',
-      '#value' => $this->t('Send'),
+      '#value' => 'Go',
     ];
-
     return $form;
   }
 
@@ -46,8 +84,8 @@ class UpdateRepositoriesForm extends FormBase {
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
-    if (mb_strlen($form_state->getValue('message')) < 10) {
-      $form_state->setErrorByName('message', $this->t('Message should be at least 10 characters.'));
+    if (!is_null($form_state->getValue('uid')) && ($form_state->getValue('uid') == 0)) {
+      $form_state->setErrorByName('uid', $this->t('You may not select the Anonymous user.'));
     }
   }
 
@@ -55,8 +93,24 @@ class UpdateRepositoriesForm extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $this->messenger()->addStatus($this->t('The message has been sent.'));
-    $form_state->setRedirect('<front>');
+    if ($uid = $form_state->getValue('uid')) {
+      /** @var \Drupal\user\UserStorageInterface $user_storage */
+      $user_storage = $this->entityTypeManager->getStorage('user');
+
+      $account = $user_storage->load($uid);
+      if ($account) {
+        if ($this->repositoriesService->updateRepositories($account)) {
+          $this->messenger()->addMessage($this->t('Repositories updated.'));
+        }
+      }
+      else {
+        $this->messenger()->addMessage($this->t('User does not exist.'));
+      }
+    }
+    else {
+      $this->batch->updateAllUserRepositories();
+    }
+
   }
 
 }

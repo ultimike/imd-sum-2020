@@ -13,4 +13,3 @@ services:
 
 parameters:
   drupaleasy_repositories.dry_run: false
-
