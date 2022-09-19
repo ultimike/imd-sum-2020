@@ -53,8 +53,11 @@ class Batch {
 
   /**
    * Updates all user repositories using the Batch API.
+   *
+   * @param bool $drush
+   *   Is this being called from Drush?
    */
-  public function updateAllUserRepositories(): void {
+  public function updateAllUserRepositories(bool $drush = FALSE): void {
     $operations = [];
 
     // Get all active users.
@@ -75,6 +78,9 @@ class Batch {
 
     // Submit the batch for processing.
     batch_set($batch);
+    if ($drush) {
+      drush_backend_batch_process();
+    }
   }
 
   /**

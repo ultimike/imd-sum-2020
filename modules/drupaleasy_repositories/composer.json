@@ -1,10 +1,19 @@
 {
-  "name": "drupaleasy/drupaleasy_repositories",
-  "type": "drupal-custom-module",
-  "version": "1.0.0",
-  "require": {
-    "knplabs/github-api": "^3.0",
-    "symfony/http-client": "^5.0",
-    "drupal/key": "^1.0"
-  }
+    "name": "drupaleasy/drupaleasy_repositories",
+    "type": "drupal-custom-module",
+    "version": "1.0.0",
+    "require": {
+        "knplabs/github-api": "^3.0",
+        "symfony/http-client": "^5.0",
+        "drupal/key": "^1.0",
+        "drush/drush": "^11.1",
+        "php": ">=8.0.0"
+    },
+    "extra": {
+        "drush": {
+            "services": {
+                "drush.services.yml": "^10"
+            }
+        }
+    }
 }
