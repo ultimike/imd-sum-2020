@@ -10,6 +10,9 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\node\Entity\Node;
 use Drupal\drupaleasy_repositories\Event\RepoUpdatedEvent;
+use Drupal\Core\Cache\CacheBackendInterface;
+use Drupal\Component\Datetime\TimeInterface;
+use Drupal\Core\Cache\Cache;
 
 /**
  * Service description.
@@ -56,6 +59,20 @@ class DrupaleasyRepositoriesService {
   protected ContainerAwareEventDispatcher $eventDispatcher;
 
   /**
+   * Cache backend.
+   *
+   * @var \Drupal\Core\Cache\CacheBackendInterface
+   */
+  protected CacheBackendInterface $cache;
+
+  /**
+   * Datetime service.
+   *
+   * @var \Drupal\Component\Datetime\TimeInterface
+   */
+  protected TimeInterface $time;
+
+  /**
    * Constructs a DrupaleasyRepositories object.
    *
    * @param \Drupal\drupaleasy_repositories\DrupaleasyRepositories\DrupaleasyRepositoriesPluginManager $plugin_manager_drupaleasy_repositories
@@ -68,13 +85,27 @@ class DrupaleasyRepositoriesService {
    *   The dry_run parameter that specifies whether or not to save node changes.
    * @param \Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher $event_dispatcher
    *   The event_dispatcher service.
+   * @param \Drupal\Core\Cache\CacheBackendInterface $cache
+   *   Cache backend.
+   * @param \Drupal\Component\Datetime\TimeInterface $time
+   *   Time service.
    */
-  public function __construct(DrupaleasyRepositoriesPluginManager $plugin_manager_drupaleasy_repositories, ConfigFactoryInterface $config_factory, EntityTypeManagerInterface $entity_type_manager, bool $dry_run, ContainerAwareEventDispatcher $event_dispatcher) {
+  public function __construct(
+      DrupaleasyRepositoriesPluginManager $plugin_manager_drupaleasy_repositories,
+      ConfigFactoryInterface $config_factory,
+      EntityTypeManagerInterface $entity_type_manager,
+      bool $dry_run,
+      ContainerAwareEventDispatcher $event_dispatcher,
+      CacheBackendInterface $cache,
+      TimeInterface $time
+    ) {
     $this->pluginManagerDrupaleasyRepositories = $plugin_manager_drupaleasy_repositories;
     $this->configFactory = $config_factory;
     $this->entityManager = $entity_type_manager;
     $this->dryRun = $dry_run;
     $this->eventDispatcher = $event_dispatcher;
+    $this->cache = $cache;
+    $this->time = $time;
   }
 
   /**
@@ -179,31 +210,50 @@ class DrupaleasyRepositoriesService {
    *
    * @param \Drupal\Core\Entity\EntityInterface $account
    *   The user account whose repositories to update.
+   * @param bool $bypass_cache
+   *   For a cache bypass when the user profile is updated.
    *
    * @return bool
    *   TRUE if successful.
    */
-  public function updateRepositories(EntityInterface $account): bool {
+  public function updateRepositories(EntityInterface $account, bool $bypass_cache = FALSE): bool {
     // 1. Get repository metadata for each Repository URL in $account.
     $repos_info = [];
-    // Use Null Coalesce Operator in case no repositories are enabled.
-    // See https://wiki.php.net/rfc/isset_ternary
-    $repository_location_ids = $this->configFactory->get('drupaleasy_repositories.settings')->get('repositories') ?? [];
 
-    foreach ($repository_location_ids as $repository_location_id) {
-      if (!empty($repository_location_id)) {
-        /** @var \Drupal\drupaleasy_repositories\DrupaleasyRepositories\DrupaleasyRepositoriesInterface $repository_location */
-        $repository_location = $this->pluginManagerDrupaleasyRepositories->createInstance($repository_location_id);
-        // Loop through repository URLs.
-        foreach ($account->field_repository_url ?? [] as $url) {
-          // Check if the URL validates for this repository.
-          if ($repository_location->validate($url->uri)) {
-            // Confirm the repository exists and get metadata.
-            if ($repo_info = $repository_location->getRepo($url->uri)) {
-              $repos_info += $repo_info;
+    // Get the cache, if valid.
+    $cid = 'drupaleasy_repositories:repositories:' . $account->id();
+    $cache = $this->cache->get($cid);
+    if ($cache && !$bypass_cache) {
+      $repos_info = $cache->data;
+    }
+    else {
+      // Use Null Coalesce Operator in case no repositories are enabled.
+      // See https://wiki.php.net/rfc/isset_ternary
+      $repository_location_ids = $this->configFactory->get('drupaleasy_repositories.settings')->get('repositories') ?? [];
+
+      foreach ($repository_location_ids as $repository_location_id) {
+        if (!empty($repository_location_id)) {
+          /** @var \Drupal\drupaleasy_repositories\DrupaleasyRepositories\DrupaleasyRepositoriesInterface $repository_location */
+          $repository_location = $this->pluginManagerDrupaleasyRepositories->createInstance($repository_location_id);
+          // Loop through repository URLs.
+          foreach ($account->field_repository_url ?? [] as $url) {
+            // Check if the URL validates for this repository.
+            if ($repository_location->validate($url->uri)) {
+              // Confirm the repository exists and get metadata.
+              if ($repo_info = $repository_location->getRepo($url->uri)) {
+                $repos_info += $repo_info;
+              }
             }
           }
         }
+        // Set the cache.
+        //$this->cache->set($cid, $repos_info, $this->time->getRequestTime() + (60));
+        $this->cache->set(
+          $cid,
+          $repos_info,
+          Cache::PERMANENT,
+          ['user:' . $account->id()],
+        );
       }
     }
     return $this->updateRepositoryNodes($repos_info, $account) &&

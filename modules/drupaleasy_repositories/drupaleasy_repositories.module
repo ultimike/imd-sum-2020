@@ -75,7 +75,7 @@ function _drupaleasy_repositories_user_form_submit(array $form, FormStateInterfa
   /** @var \Drupal\drupaleasy_repositories\DrupaleasyRepositoriesService $repository_service */
   $repository_service = \Drupal::service('drupaleasy_repositories.service');
   $account = User::load($form_state->getValue('uid'));
-  $repository_service->updateRepositories($account);
+  $repository_service->updateRepositories($account, TRUE);
 }
 
 /**

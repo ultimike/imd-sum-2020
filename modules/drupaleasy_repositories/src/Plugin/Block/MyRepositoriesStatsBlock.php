@@ -92,28 +92,31 @@ class MyRepositoriesStatsBlock extends BlockBase implements ContainerFactoryPlug
       '#items' => [
         $this->t('Current user: @name', ['@name' => $this->account->getAccountName()]),
         $this->t('Current timestamp: @timestamp', ['@timestamp' => $this->time->getCurrentTime()]),
-        $this->t('Total number of comments in all repository nodes: @all', ['@all' => $this->calculateTotalComments()]),
-        $this->t('Total number of comments in my repository nodes: @my', ['@my' => $this->calculateTotalComments($this->account->id())]),
+        $this->t('Total number of issues in all repository nodes: @all', ['@all' => $this->calculateTotalIssues()]),
+        $this->t('Total number of issues in my repository nodes: @my', ['@my' => $this->calculateTotalIssues($this->account->id())]),
       ],
     ];
 
     $build['#cache'] = [
-      'max-age' => Cache::PERMANENT,
+      'max-age' => 0,
+      'tags' => ['node_list:repository', 'drupaleasy_repositories'],
+      'contexts' => ['user'],
     ];
 
     return $build;
   }
 
   /**
-   * Calculates the total number of comments for a user's repositories.
+   * Calculates the total number of issues for a user's repositories.
    *
    * @param int $uid
    *   An (optional) user to filter on.
    *
    * @return int
-   *   The total number of comments.
+   *   The total number of issues.
    */
-  protected function calculateTotalComments($uid = NULL): int {
+  protected function calculateTotalIssues($uid = NULL): int {
+    //usleep(3000000);
     $return = 0;
     $node_storage = $this->entityTypeManager->getStorage('node');
     $query = $node_storage->getQuery();
